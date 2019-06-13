@@ -1,0 +1,91 @@
+name: cipher
+version: git
+summary: cipher
+description: cipher description
+grade: stable
+confinement: strict
+base: core18
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: i386
+    run-on: i386
+
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
+
+slots:
+  # for GtkApplication registration
+  cipher:
+    interface: dbus
+    bus: session
+    name: com.github.arshubham.cipher
+
+plugs:
+    gnome-3-26-1604:
+        interface: content
+        target: $SNAP/gnome-platform
+        default-provider: gnome-3-26-1604:gnome-3-26-1604
+    gtk-3-themes:
+        interface: content
+        target: $SNAP/usr/share/themes
+        default-provider: gtk-common-themes:gtk-3-themes
+    icon-themes:
+        interface: content
+        target: $SNAP/usr/share/icons
+        default-provider: gtk-common-themes:icon-themes
+
+apps:
+ cipher: 
+  command: /root/parts/cipher/install/snap/arshubham/current/usr/bin/com.github.arshubham.cipher
+  desktop: /root/parts/cipher/install/snap/arshubham/current/usr/share/applications/com.github.arshubham.cipher.desktop
+parts:
+
+  granite:
+    source: https://github.com/elementary/granite.git
+    meson-parameters: [ --prefix=/usr ]
+    plugin: meson
+    build-packages:
+      - libgee-0.8-dev
+      - libgtk-3-dev
+      - libglib2.0-dev
+      - libgirepository1.0-dev
+      - valac
+
+
+  cipher:
+    after: [granite]
+    source: https://github.com/arshubham/cipher.git
+    source-type: git
+    build-environment:
+      - XDG_DATA_DIRS: $XDG_DATA_DIRS:$SNAPCRAFT_STAGE/usr/share:/usr/share
+      - GI_TYPELIB_PATH: $SNAPCRAFT_STAGE/usr/lib/girepository-1.0:$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/girepository-1.0:/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/girepository-1.0
+    override-build: |
+      snapcraftctl build
+      mkdir -p $SNAPCRAFT_PART_INSTALL/meta/gui/
+      cp data/images/icons/128/com.github.arshubham.cipher.svg $SNAPCRAFT_PART_INSTALL/meta/gui/arshubham.svg
+    plugin: meson
+    meson-parameters:
+      - --prefix=/snap/arshubham/current/usr
+    organize:
+      snap/cipher/current/usr: usr
+    build-packages:
+      - valac
+      - libgtk-3-dev
+      - libglib2.0-dev
+      - libgirepository1.0-dev
